@@ -9,8 +9,8 @@ const config = {
     initialSleep: 55,
     sleepPerSecond: 0.22,
     // 業務
-    counts: [12, 12, 9, 9],
-    pcCounts: [24, 16, 10],
+    counts: [12, 12, 6, 8],
+    pcCounts: [24, 16, 8, 10],
     saveMs: 1200,
     // 視点切り替え・手動テスト
     blinkMs: 100,
@@ -27,4 +27,4 @@ const config = {
     patrolHitMs: 1400,
 };
 const jobs = [['approval', '承認・押印', 37, 70, 23, 35], ['receipt', '領収書仕分け', 25, 94, 22, 29], ['matching', '請求書・納品書照合', 59, 95, 25, 34], ['filing', '資料整理', 77, 76, 24, 34]];
-const pcNames = ['売上データ入力', 'メール確認', 'データ照合'];
+const pcNames = ['売上データ入力', 'メール確認', 'データ照合', '商品登録'];

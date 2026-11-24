@@ -1,7 +1,8 @@
 function notify(t) {
     $('toast').textContent = t;
+    $('jobAlert').textContent = t;
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => $('toast').textContent = '', 2200);
+    toastTimer = setTimeout(() => { $('toast').textContent = ''; $('jobAlert').textContent = ''; }, 2200);
 }
 function item(key, label, x, y, w, h, fn, id) {
     let b = document.createElement('button');
@@ -18,9 +19,11 @@ function item(key, label, x, y, w, h, fn, id) {
     $('items').append(b);
 }
 function stats() {
-    $('stats').textContent = `眠気 ${Math.round(sleep)}%　残務 ${remain.reduce((a, b) => a + b, 0)}件`;
+    $('stats').textContent = `眠気 ${Math.round(sleep)}%　残務 ${remain.reduce((a, b) => a + b, 0) + pcRemain.reduce((a,b)=>a+b,0)}件`;
 }
 function render() {
+    // Keep the iframe alive: only the player-facing view is closed.
+    if (view === "camera" && !cameraAvailable()) view = "pc";
     $("cameraPane").hidden = view !== "camera";
     $("camera").classList.toggle("active", view === "camera");
     $("stage").style.visibility = view === "camera" ? "hidden" : "visible";

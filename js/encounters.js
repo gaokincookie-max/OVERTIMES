@@ -41,6 +41,7 @@ window.cameraArrival = function (type, side) {
     eventType = type;
     notify((side === -1 ? '左' : '右') + '入口から足音がする…');
     encounterTimer = setTimeout(resolveArrival, config.arrivalMs);
+    return true;
 };
 function resolveArrival() {
     if (!encounter)

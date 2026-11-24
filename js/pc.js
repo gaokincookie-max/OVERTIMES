@@ -7,34 +7,15 @@ function syncPC() {
     $('pcLayer').hidden = !isPC || !!riseFrame;
     $('screenTap').hidden = !monitorOn;
     $('monitorKey').classList.toggle('off', !monitorOn);
-    $('pcZoom').hidden = !isPC || !pcZoomed || !monitorOn;
+    syncJobPane();
     $('screenStatus').textContent = (dirtyPC() ? '未保存の変更あり' : '保存済み') + ' / 残務 ' + pcRemain.reduce((a, b) => a + b, 0) + '件';
     $('remoteState').textContent = '部屋の照明：' + (dark ? 'OFF' : 'ON');
     $('remoteOn').disabled = !dark;
     $('remoteOff').disabled = dark;
 }
 function drawPC() {
-    $('pcRows').replaceChildren();
-    pcNames.forEach((n, i) => {
-        const row = document.createElement('div');
-        row.className = 'pcrow';
-        const t = document.createElement('span');
-        t.textContent = n;
-        const count = document.createElement('span');
-        count.textContent = pcRemain[i] + '件';
-        const b = document.createElement('button');
-        b.textContent = '1件処理';
-        b.disabled = pcRemain[i] === 0;
-        b.onclick = () => {
-            pcRemain[i]--;
-            syncPC();
-            drawPC();
-        };
-        row.append(t, count, b);
-        $('pcRows').append(row);
-    });
-    $('pcStatus').textContent = saveTimer ? '保存中…' : dirtyPC() ? '未保存の変更があります' : '保存済み';
-    $('pcSave').disabled = !!saveTimer || !dirtyPC();
+    $('pcStatus').textContent = saveTimer ? '保存中…' : dirtyPC() ? '未保存の変更あり' : '保存済み';
+    $('pcSave').disabled = !!saveTimer || !dirtyPC() || !jobReady;
 }
 function closePC() {
     pcZoomed = false;
@@ -66,24 +47,32 @@ function switchMonitor(on) {
     }
     syncPC();
     drawPC();
+    if (!on && view === 'camera') render();
     notify(on ? 'モニター点灯' : 'モニター消灯（作業データ維持）');
 }
 $('powerImg').src = A.monitor_button;
 $('remoteImg').src = A.remote;
 $('screenTap').onclick = () => {
+    if (!jobReady || !monitorOn || powerOut || defeated) return;
     pcZoomed = true;
     syncPC();
     drawPC();
 };
 $('pcBack').onclick = () => {
-    pcZoomed = false;
-    syncPC();
+    closePC();
 };
 $('monitorKey').onclick = () => switchMonitor(!monitorOn);
 $('pcSave').onclick = () => {
+    if (!window.jobCanCommit('PC') || !dirtyPC()) return;
     const snapshot = [...pcRemain];
+    const jobSnapshot = jobApi().snapshot();
+    const correctSnapshot = [...pcCorrect];
+    jobApi().setSaving(true);
     saveTimer = setTimeout(() => {
         pcSaved = snapshot;
+        savedJobs = jobSnapshot;
+        savedCorrect = correctSnapshot;
+        jobApi()?.setSaving(false);
         saveTimer = null;
         syncPC();
         drawPC();

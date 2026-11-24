@@ -8,6 +8,7 @@ window.cameraPower = function (out) {
         clearTimeout(saveTimer);
         saveTimer = null;
         pcRemain = [...pcSaved];
+        rollbackJobs();
         dark = true;
         monitorOn = false;
         closePC();

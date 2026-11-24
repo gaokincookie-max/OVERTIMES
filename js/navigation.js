@@ -1,6 +1,17 @@
+function cameraAvailable() {
+    return monitorOn && !powerOut;
+}
+window.cameraIsWatching = () => view === "camera" && cameraAvailable() && !defeated;
+function cameraUnavailableNotice() {
+    notify(powerOut ? "停電中：監視カメラを使用できません" : "モニター消灯中：電源を入れてください");
+}
 function change(v) {
     if (defeated)
         return;
+    if (v === "camera" && !cameraAvailable()) {
+        cameraUnavailableNotice();
+        return;
+    }
     closeJob();
     closePC();
     if (v === view)
@@ -10,6 +21,10 @@ function change(v) {
     if (!encounter)
         cancelEvent();
     blink(() => {
+        if (v === "camera" && !cameraAvailable()) {
+            cameraUnavailableNotice();
+            return;
+        }
         view = v;
         render();
     });
@@ -50,6 +65,8 @@ $('reset').onclick = () => {
     sleep = config.initialSleep;
     foodUntil = 0;
     dark = false;
+    powerOut = false; prePower = null; view = 'pc'; lastDesk = 'pc';
+    resetJobs();
     resetPC();
     closeJob();
     render();
