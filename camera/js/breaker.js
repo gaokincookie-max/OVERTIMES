@@ -36,7 +36,7 @@ function startBreaker() {
         breakerLast = now;
         breakerElapsed += dt;
         if (breakerPhase === 1 || breakerPhase === 2) {
-            if (cam === 6 && parent.document.getElementById("cameraPane").hidden === false)
+            if (cam === 6 && parent.cameraIsWatching())
                 breakerWatch += dt;
             if (breakerWatch >= cameraConfig.watchSeconds) {
                 breakerPhase = 0;

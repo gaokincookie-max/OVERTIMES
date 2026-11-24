@@ -1,0 +1,18 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const path = require('node:path');
+const context = vm.createContext({});
+vm.runInContext(fs.readFileSync(path.join(__dirname,'../camera/js/occupancy.js'),'utf8') + '\nthis.Occupancy = Occupancy;',context);
+const o = new context.Occupancy();
+assert.equal(o.move('patrol',1),true);
+assert.equal(o.move('light',1),false);
+assert.equal(o.move('light',2),true);
+assert.equal(o.move('patrol',2),false);
+assert.equal(o.owner(1),'patrol');
+assert.equal(o.move('patrol',3),true);
+assert.equal(o.owner(1),undefined);
+assert.equal(o.move('light',1),true);
+o.release('light');
+assert.equal(o.owner(1),undefined);
+console.log('occupancy OK');

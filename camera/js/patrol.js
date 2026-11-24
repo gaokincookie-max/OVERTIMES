@@ -13,12 +13,18 @@ function stop() {
     if (timer)
         clearInterval(timer);
     timer = null;
+    multi.running = false;
 }
 window.pausePatrol = () => {
     stop();
     render();
 };
 $('mode').onclick = () => {
+    if ($('kind').value === 'multi') {
+        if (timer) { stop(); parent.cancelCameraEncounter(); resetMulti(); render(true); }
+        else startMulti();
+        return;
+    }
     if ($('kind').value === 'breaker') {
         if (timer) {
             stop();
@@ -68,6 +74,7 @@ $('manual').onclick = () => {
 };
 $('reset').onclick = () => {
     stop();
+    resetMulti();
     parent.cancelCameraEncounter();
     manual = false;
     loc = null;
@@ -77,6 +84,7 @@ $('reset').onclick = () => {
 };
 $('kind').onchange = () => {
     stop();
+    resetMulti();
     parent.cancelCameraEncounter();
     manual = false;
     loc = null;

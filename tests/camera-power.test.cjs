@@ -1,0 +1,14 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs'), vm = require('node:vm'), path = require('node:path');
+const nodes = new Map();
+const $ = k => { if (!nodes.has(k)) nodes.set(k,{style:{},classList:{toggle(){},remove(){}},addEventListener(){},replaceChildren(){}}); return nodes.get(k); };
+const ctx = vm.createContext({clearTimeout(){},setTimeout(){},$,window:{},view:'pc',monitorOn:true,powerOut:false,defeated:false,dark:false,encounter:null,gesture:null,toastTimer:null,lastDesk:'pc',phase:'none',labels:false,riseFrame:null,remain:[],pcRemain:[],sleep:0,A:{},isUnder:()=>false,underFrame:()=>'',closeJob(){},closePC(){},cancelEvent(){},syncPC(){},blink:fn=>{ctx.pending=fn},notify:msg=>{ctx.message=msg}});
+const run=s=>vm.runInContext(s,ctx);
+for(const f of ['navigation','desk']) run(fs.readFileSync(path.join(__dirname,'../js',f+'.js'),'utf8'));
+run('monitorOn=false; change("camera")'); assert.equal(ctx.view,'pc'); assert.equal(ctx.pending,undefined);
+run('monitorOn=true; dark=true; change("camera")'); ctx.pending(); assert.equal(ctx.view,'camera'); assert.equal(ctx.window.cameraIsWatching(),true);
+run('powerOut=true; monitorOn=false; render()'); assert.equal(ctx.view,'pc'); assert.equal($('cameraPane').hidden,true); assert.equal(ctx.window.cameraIsWatching(),false);
+run('change("camera")'); assert.match($("toast").textContent,/停電/);
+run('powerOut=false; monitorOn=true; change("camera"); powerOut=true; monitorOn=false'); ctx.pending(); assert.equal(ctx.view,'pc');
+run('powerOut=false; monitorOn=false; change("camera")'); assert.equal(ctx.view,'pc');
+console.log('camera power OK');

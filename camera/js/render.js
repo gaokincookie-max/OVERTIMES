@@ -22,6 +22,8 @@ function flash() {
     e.classList.add('on');
 }
 function render(glitch = false) {
+    if ($('kind').value === 'multi') { renderMulti(glitch); return; }
+    $('manual').disabled = false; $('step').disabled = false;
     parent.cameraPower($('kind').value === 'breaker' && breakerPhase === 3);
     if ($('kind').value === 'breaker') {
         renderBreaker(glitch);
