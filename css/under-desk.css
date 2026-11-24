@@ -1,0 +1,52 @@
+.blink {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  z-index: 8;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 45ms;
+}
+
+.blink.closed {
+  opacity: 1;
+}
+
+.stage {
+  touch-action: none;
+}
+
+#underTools {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+#underTools[hidden] {
+  display: none;
+}
+
+#underTools select {
+  font: inherit;
+  background: #18282d;
+  color: #d1dcd9;
+  border: 1px solid #536b72;
+  padding: 4px;
+}
+
+#underAction {
+  position: absolute;
+  bottom: 8%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+}
+
+#underAction[hidden] {
+  display: none;
+}
+
+.stage.scare #hud,.stage.scare #toast,.stage.scare #underAction {
+  visibility: hidden;
+}

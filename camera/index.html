@@ -1,0 +1,52 @@
+<!doctype html><html lang="ja">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>残業 / CCTV Ver.0.6 配電盤追加版</title>
+<link rel="stylesheet" href="css/camera.css">
+</head>
+<body>
+<div id="app">
+<header>
+<b>OVERTIME / SECURITY</b>
+<span id="title">
+</span>
+<small>監視試作 Ver.0.6 配電盤追加版</small>
+</header>
+<div class="screen">
+<div class="feed">
+<div class="frame" id="frame">
+<img class="base" id="base" alt="監視カメラ映像">
+<img id="patch" hidden alt="">
+</div>
+</div>
+<div class="noise" id="noise">
+</div>
+<div class="status" id="status">
+</div>
+<aside class="map" id="map">
+<div class="maphead">FLOOR PLAN / 2F <button id="expand">拡大</button>
+</div>
+<div class="plan"><svg viewBox="0 0 390 320" aria-label="監視カメラ配置図"><rect x="3" y="3" width="384" height="314" fill="#17282c" stroke="#78918a"/><g fill="#293d43" stroke="#849892" stroke-width="2"><rect x="12" y="12" width="108" height="73"/><rect x="137" y="12" width="112" height="73"/><rect x="266" y="12" width="112" height="73"/><rect x="12" y="105" width="108" height="75"/><rect x="266" y="105" width="112" height="75"/><rect x="12" y="200" width="108" height="54"/><rect x="266" y="200" width="112" height="54"/><rect x="137" y="105" width="112" height="149"/><rect x="12" y="271" width="366" height="38"/></g><g stroke="#b2bda8" stroke-width="4" fill="none"><path d="M66 85V105M193 85V105M322 85V105M120 142H137M249 142H266M120 227H137M249 227H266M66 180V200M322 180V200"/><path d="M66 254V271M322 254V271" stroke="#eac07b" stroke-width="7"/></g><g fill="#d8e3df" font-size="12" text-anchor="middle"><text x="66" y="31">休憩室</text><text x="193" y="31">給湯室</text><text x="322" y="31">電気室</text><text x="66" y="123">会議室</text><text x="322" y="123">書庫</text><text x="66" y="217">複合機</text><text x="322" y="217">倉庫</text><text x="193" y="137">中央通路</text><text x="193" y="295" fill="#edcb90">● 自席</text><text x="66" y="295">左入口</text><text x="322" y="295">右入口</text></g></svg>
+<div id="cams">
+</div>
+</div>
+</aside>
+</div>
+<div class="tools"><label>怪異 <select id="kind"><option value="patrol">巡回社員</option><option value="light">光反応型</option><option value="breaker">配電盤の住人</option>
+</select></label>
+<button id="mode" aria-pressed="false">巡回開始</button>
+<button id="step">1地点進む</button>
+<button id="manual" aria-pressed="false">表示中のカメラに出現</button>
+<button id="reset">通常状態</button>
+<button id="toggleMap">地図 非表示</button>
+<span>巡回開始で自席への接近・襲撃が連動</span>
+</div>
+</div>
+<script src="js/assets.js"></script>
+<script src="js/config.js"></script>
+<script src="js/state.js"></script>
+<script src="js/render.js"></script>
+<script src="js/patrol.js"></script>
+<script src="js/breaker.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
