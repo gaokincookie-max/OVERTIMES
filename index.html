@@ -1,16 +1,17 @@
 <!doctype html><html lang="ja">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>残業 / デスク操作試作</title>
-<link rel="stylesheet" href="css/base.css">
-<link rel="stylesheet" href="css/under-desk.css">
-<link rel="stylesheet" href="css/pc.css">
-<link rel="stylesheet" href="css/camera-and-failure.css">
-<link rel="stylesheet" href="css/jobs-integration.css">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>残業 / OVERTIME</title>
+<link rel="stylesheet" href="css/bundle.css">
+
+
+
+
+
 </head>
 <body>
-<div id="app">
+<div id="app" inert>
 <header>
-<b>OVERTIME / DESK + CCTV v0.13</b>
+<b>OVERTIME / DESK + CCTV v0.14</b>
 <button id="camera">上・監視</button>
 <button id="pc">中央・PC</button>
 <button id="left">左・飲食</button>
@@ -59,15 +60,15 @@
 </div>
 </div>
 <section id="jobPane" hidden aria-label="業務画面">
-<div class="job-toolbar"><b id="jobtitle"></b><span id="jobAlert" aria-live="polite"></span><span id="pcStatus"></span><label><input type="checkbox" id="jobSound" checked>作業音</label><button id="pcSave">保存</button><button id="pcBack">× 戻る</button><button id="close" hidden>× 戻る</button></div>
+<div class="job-toolbar"><b id="jobtitle"></b><span id="jobAlert" aria-live="polite"></span><span id="pcStatus"></span><label><input type="checkbox" id="jobSound" checked>作業音</label><button id="pcSave">保存</button><button id="checkout" hidden>退勤申請</button><button id="pcBack">× 戻る</button><button id="close" hidden>× 戻る</button></div>
 <iframe id="jobFrame" title="業務ミニゲーム"></iframe>
 </section>
 <div id="cameraPane" hidden>
 <iframe id="cameraFrame" title="監視カメラ">
 </iframe>
-<button id="cameraBack">↑ PCへ戻る</button>
+<div id="cameraBlack" hidden></div><button id="cameraBack">↑ PCへ戻る</button>
 </div>
-<div id="failure" hidden style="position:absolute;inset:0;z-index:30;background:#08090bf5;display:grid;place-content:center;text-align:center;gap:14px">
+<div id="eatPanel" hidden><div id="eatText"></div><progress id="eatProgress" max="1"></progress></div><div id="failure" hidden style="position:absolute;inset:0;z-index:30;background:#08090bf5;display:grid;place-content:center;text-align:center;gap:14px">
 <b style="font-size:28px;color:#ae6565">GAME OVER</b>
 <span id="failureReason">
 </span>
@@ -87,18 +88,18 @@
 <span>フリックで視点移動</span>
 </footer>
 </div>
-<script src="js/assets.js"></script>
-<script src="js/config.js"></script>
-<script src="js/state.js"></script>
-<script src="js/desk.js"></script>
-<script src="js/food.js"></script>
-<script src="js/job-bridge.js"></script>
-<script src="js/paperwork.js"></script>
-<script src="js/navigation.js"></script>
-<script src="js/under-desk.js"></script>
-<script src="js/pc.js"></script>
-<script src="js/encounters.js"></script>
-<script src="js/camera-bridge.js"></script>
-<script src="js/main.js"></script>
+<section id="titleScreen" class="nightOverlay"><div class="titleContent"><small>INTERNAL ATTENDANCE SYSTEM</small><h1>残業</h1><div class="english">OVERTIME</div><p>本日の業務が残っています。<br>午前6時までに退勤申請を完了してください。</p><button id="startNight">残業を開始する</button><details><summary>業務マニュアル</summary><p>PC業務は保存が必要です。監視カメラで怪異を確認し、巡回社員からは机の下へ。光反応型には照明・モニターを消してください。電気室を監視して停電を防止できます。飲食は給与から控除され、完了まで操作できません。</p></details><small id="startStatus">社内利用専用 / Ver.0.14</small></div></section><section id="resultScreen" class="nightOverlay" hidden><div class="resultWrap"><div id="resultBody"></div><div class="resultActions"><button id="rejoin">再出勤</button><button id="returnTitle">タイトルへ</button></div></div></section><script src="js/bundle.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
 </body>
 </html>
