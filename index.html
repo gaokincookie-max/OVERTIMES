@@ -11,7 +11,7 @@
 <body>
 <div id="app" inert>
 <header>
-<b>OVERTIME / DESK + CCTV v0.14</b>
+<b>OVERTIME / DESK + CCTV v0.17</b>
 <button id="camera">上・監視</button>
 <button id="pc">中央・PC</button>
 <button id="left">左・飲食</button>
@@ -52,6 +52,7 @@
 </div>
 </div>
 <button id="underAction" hidden>潜る</button>
+<div id="foodDetail" class="veil" hidden><section class="foodCard" aria-label="飲食物の詳細"><img id="foodImage" alt=""><div class="foodInfo"><small>社内販売品</small><h2 id="foodName"></h2><p id="foodDescription"></p><b id="foodPrice"></b><button id="foodConfirm"></button><button id="foodClose">戻る</button></div></section></div>
 <div class="blink" id="blink">
 </div>
 <div class="hud" id="hud">
@@ -68,13 +69,13 @@
 </iframe>
 <div id="cameraBlack" hidden></div><button id="cameraBack">↑ PCへ戻る</button>
 </div>
-<div id="eatPanel" hidden><div id="eatText"></div><progress id="eatProgress" max="1"></progress></div><div id="failure" hidden style="position:absolute;inset:0;z-index:30;background:#08090bf5;display:grid;place-content:center;text-align:center;gap:14px">
+<div id="eatPanel" hidden><img id="eatImage" alt=""><div id="eatText"></div><progress id="eatProgress" max="1"></progress></div><div id="failure" hidden style="position:absolute;inset:0;z-index:30;background:#08090bf5;display:grid;place-content:center;text-align:center;gap:14px">
 <b style="font-size:28px;color:#ae6565">GAME OVER</b>
 <span id="failureReason">
 </span>
 <button id="retry">リセットして再試行</button>
 </div>
-</main>
+<div id="fatigueOverlay" aria-hidden="true"><div class="fatigueLid top"></div><div class="fatigueLid bottom"></div></div></main>
 <footer>
 <button id="light">消灯</button>
 <button id="labels">ラベル表示</button>
@@ -88,7 +89,7 @@
 <span>フリックで視点移動</span>
 </footer>
 </div>
-<section id="titleScreen" class="nightOverlay"><div class="titleContent"><small>INTERNAL ATTENDANCE SYSTEM</small><h1>残業</h1><div class="english">OVERTIME</div><p>本日の業務が残っています。<br>午前6時までに退勤申請を完了してください。</p><button id="startNight">残業を開始する</button><details><summary>業務マニュアル</summary><p>PC業務は保存が必要です。監視カメラで怪異を確認し、巡回社員からは机の下へ。光反応型には照明・モニターを消してください。電気室を監視して停電を防止できます。飲食は給与から控除され、完了まで操作できません。</p></details><small id="startStatus">社内利用専用 / Ver.0.14</small></div></section><section id="resultScreen" class="nightOverlay" hidden><div class="resultWrap"><div id="resultBody"></div><div class="resultActions"><button id="rejoin">再出勤</button><button id="returnTitle">タイトルへ</button></div></div></section><script src="js/bundle.js"></script>
+<section id="titleScreen" class="nightOverlay"><div class="titleContent"><small>INTERNAL ATTENDANCE SYSTEM</small><h1>残業</h1><div class="english">OVERTIME</div><p>本日の業務が残っています。<br>午前6時までに退勤申請を完了してください。</p><button id="startNight">残業を開始する</button><details><summary>業務マニュアル</summary><p>PC業務は保存が必要です。監視カメラで怪異を確認し、巡回社員からは机の下へ。光反応型には照明・モニターを消してください。電気室を監視して停電を防止できます。飲食は給与から控除され、完了まで操作できません。</p></details><label class="sleepSetting"><input id="sleepGaugeSetting" type="checkbox" checked> 眠気ゲージを表示（検証用）</label><small id="startStatus">社内利用専用 / Ver.0.17</small></div></section><div id="deathOverlay" hidden aria-hidden="true"><img id="deathImage" alt=""><div class="eyelid top"></div><div class="eyelid bottom"></div></div><section id="resultScreen" class="nightOverlay" hidden><div class="resultWrap"><div id="resultBody"></div><div class="resultActions"><button id="rejoin">再出勤</button><button id="returnTitle">タイトルへ</button></div></div></section><script src="js/bundle.js"></script>
 
 
 

@@ -60,9 +60,17 @@ const config = {
     sleepPerSecond: 0.16,
     nightMs: 1200000, coffeeMs:3000, foodMs:6000, coffeeCost:180, foodCost:250, checkoutMs:2500,
     basePay:8000, speedPay:6000, qualityPay:3000, errorCostPerPercent:100,
+    fatigueBands: [
+        {min:0, interval:[0,0],duration:[0,0],shade:0,lid:0},
+        {min:40,interval:[30000,50000],duration:[200,350],shade:0,lid:0},
+        {min:60,interval:[18000,30000],duration:[350,600],shade:.35,lid:0},
+        {min:75,interval:[8000,18000],duration:[600,1000],shade:.55,lid:5},
+        {min:90,interval:[3000,8000],duration:[1000,1600],shade:.8,lid:14},
+    ],
     // 業務
-    counts: [12, 12, 6, 8],
-    pcCounts: [24, 16, 8, 10],
+    counts: [14, 14, 8, 12],
+    pcCounts: [20, 12, 8, 8],
+    darkPaperBrightness: 0.24,
     saveMs: 1200,
     // 視点切り替え・手動テスト
     blinkMs: 100,
@@ -73,10 +81,14 @@ const config = {
     arrivalMs: 6500,
     encounterPassMs: 1100,
     encounterHoldMs: 2200,
-    risePreMs: 450,
-    riseHitMs: 1400,
-    patrolPreMs: 750,
-    patrolHitMs: 1400,
+    scarePreMinMs: 750,
+    scarePreMaxMs: 1400,
+    scareHitMs: 150,
+    deathBlackMs: 1200,
+    deathFadeMs: 1800,
+    deathHeadingMs: 400,
+    deathDetailsMs: 400,
+    sleepCloseMs: 900,
 };
 const jobs = [['approval', '承認・押印', 37, 70, 23, 35], ['receipt', '領収書仕分け', 25, 94, 22, 29], ['matching', '請求書・納品書照合', 59, 95, 25, 34], ['filing', '資料整理', 77, 76, 24, 34]];
 const pcNames = ['売上データ入力', 'メール確認', 'データ照合', '商品登録'];
@@ -117,10 +129,11 @@ function item(key, label, x, y, w, h, fn, id) {
     $('items').append(b);
 }
 function stats() {
-    $('stats').textContent = `${clockText()}　眠気 ${Math.round(sleep)}%　残務 ${remaining()}件`;
+    $('stats').textContent = `${clockText()}${$('sleepGaugeSetting').checked ? `　眠気 ${Math.round(sleep)}%` : ''}　残務 ${remaining()}件`;
     updateCheckout();
 }
 function render() {
+    syncFoodLight();
     // Keep the iframe alive: only the player-facing view is closed.
     $("cameraBlack").hidden = cameraAvailable();
     $("cameraPane").hidden = view !== "camera";
@@ -152,8 +165,8 @@ function render() {
     $('hud').textContent = view === 'pc' ? 'PC業務スペース' : view === 'left' ? '飲食スペース' : view === 'right' ? '書類作業スペース' : view === 'look' ? '足元を見る' : '机の下に隠れている';
     $('items').replaceChildren();
     if (view === 'left') {
-        item('coffee', `コーヒー ¥${config.coffeeCost}`, 35, 82, 15, 35, () => consume('coffee'), 'coffee');
-        item('onigiri', `おにぎり ¥${config.foodCost}`, 67, 87, 22, 32, () => consume('food'), 'food');
+        item('coffee', `コーヒー ¥${config.coffeeCost}`, 35, 82, 15, 35, () => inspectFood('coffee'), 'coffee');
+        item('onigiri', `おにぎり ¥${config.foodCost}`, 67, 87, 22, 32, () => inspectFood('food'), 'food');
     }
     else if (view === 'right') {
         jobs.forEach(([k, n, x, y, w, h], i) => {
@@ -168,17 +181,50 @@ function render() {
 }
 
 
-let eating=null, coffeeUsed=0, foodUsed=0;
+let eating=null, coffeeUsed=0, foodUsed=0, foodDetail=null;
+function inspectFood(k){
+    if(!gameActive()||eating||checkoutTimer||defeated||view!=='left')return;
+    foodDetail=k;const coffee=k==='coffee';
+    $('foodImage').src=A[coffee?'coffee':'onigiri'];
+    $('foodName').textContent=coffee?'コーヒー':'おにぎり';
+    $('foodDescription').textContent=coffee?'少し眠気が覚める。':'しばらく眠くなりにくい。';
+    $('foodPrice').textContent='¥'+(coffee?config.coffeeCost:config.foodCost);
+    $('foodConfirm').textContent=coffee?'飲む':'食べる';
+    $('foodDetail').hidden=false;syncFoodLight();
+}
+function syncFoodLight(){$('foodDetail').classList.toggle('food-dark',dark||powerOut);$('eatPanel').classList.toggle('food-dark',dark||powerOut);}
+function closeFood(){foodDetail=null;$('foodDetail').hidden=true;}
+$('foodClose').onclick=closeFood;
+$('foodDetail').onclick=e=>{if(e.target===$('foodDetail'))closeFood();};
+$('foodConfirm').onclick=()=>{if(foodDetail)consume(foodDetail);};
 function consume(k) {
-    if (!gameActive() || eating || checkoutTimer || defeated || view!=='left') return;
-    if (dark || powerOut) { notify('暗くて手元が見えない'); return; }
+    if (!gameActive() || eating || checkoutTimer || defeated || view!=='left' || foodDetail!==k) return;
+    closeFood();
     if(k==='coffee') coffeeUsed++; else foodUsed++;
     eating={kind:k,start:performance.now(),duration:k==='coffee'?config.coffeeMs:config.foodMs};
     $('eatPanel').hidden=false; $('eatText').textContent=k==='coffee'?'コーヒーを飲んでいます…':'おにぎりを食べています…';
+    $('eatImage').src=A[k==='coffee'?'coffee':'onigiri'];syncFoodLight();
     updateEating(performance.now());
 }
-function updateEating(now){if(!eating)return; const p=Math.min(1,(now-eating.start)/eating.duration);$('eatProgress').value=p; if(p<1)return;const k=eating.kind;cancelEating();if(k==='coffee')sleep=Math.max(0,sleep-config.coffeeEffect);else foodUntil=Date.now()+config.foodDuration*1000;notify(k==='coffee'?'コーヒーを飲んだ':'食事完了：眠気の増加を抑制');render();}
-function cancelEating(){eating=null;$('eatPanel').hidden=true;}
+function updateEating(now){if(!eating)return; const p=Math.min(1,(now-eating.start)/eating.duration);$('eatProgress').value=p; if(p<1)return;const k=eating.kind;cancelEating();if(k==='coffee'){sleep=Math.max(0,sleep-config.coffeeEffect);resetSleepEffects();}else foodUntil=Date.now()+config.foodDuration*1000;notify(k==='coffee'?'コーヒーを飲んだ':'食事完了');render();}
+function cancelEating(){eating=null;$('eatPanel').hidden=true;closeFood();}
+
+
+// Visual-only fatigue. Never changes lighting, input, or monster safety checks.
+let sleepBlinkAt=0,sleepBlinkEnd=0,sleepBand=-1;
+function fatigueBand(value){return config.fatigueBands.map(b=>value>=b.min).lastIndexOf(true);}
+function resetSleepEffects(){sleepBlinkAt=sleepBlinkEnd=0;sleepBand=-1;const o=$('fatigueOverlay');o.classList.remove('blinking');o.style.setProperty('--fatigue-shade','0');o.style.setProperty('--fatigue-lid','0');}
+function updateSleepEffects(now){
+    const o=$('fatigueOverlay'),i=fatigueBand(sleep),b=config.fatigueBands[i];
+    o.style.setProperty('--fatigue-shade',String(b.shade));
+    o.style.setProperty('--fatigue-lid',String(b.lid/51));
+    if(i!==sleepBand){sleepBand=i;sleepBlinkAt=now+randomBetween(b.interval);}
+    if(sleepBlinkEnd&&now>=sleepBlinkEnd){o.classList.remove('blinking');sleepBlinkEnd=0;}
+    if(i===0){o.classList.remove('blinking');sleepBlinkEnd=0;return;}
+    if(!sleepBlinkEnd&&now>=sleepBlinkAt){const duration=randomBetween(b.duration);o.style.setProperty('--fatigue-duration',duration+'ms');o.classList.remove('blinking');void o.offsetWidth;o.classList.add('blinking');sleepBlinkEnd=now+duration;sleepBlinkAt=sleepBlinkEnd+randomBetween(b.interval);}
+}
+function randomBetween(range){return range[0]+Math.random()*(range[1]-range[0]);}
+$('sleepGaugeSetting').onchange=()=>stats();
 
 
 // UI bridge: iframe isolates mini-game CSS and pointer gestures from desk navigation.
@@ -188,8 +234,8 @@ let jobReady=false, jobMode=null, jobKey=null, savedJobs=null, pcTab='sales';
 let pcCorrect=[0,0,0,0], paperCorrect=[0,0,0,0], savedCorrect=[0,0,0,0];
 function jobApi(){return jobReady ? $('jobFrame').contentWindow.jobAPI : null;}
 function resetJobs(){jobMode=null;jobKey=null;pcTab='sales';savedJobs=null;pcCorrect=config.pcCounts.map(()=>0);savedCorrect=[...pcCorrect];paperCorrect=config.counts.map(()=>0);const api=jobApi();if(api){api.configure(config.pcCounts,config.counts);savedJobs=api.snapshot();api.setSaving(false);}}
-function syncJobPane(){const mode=!defeated&&!powerOut&&view==='pc'&&pcZoomed&&monitorOn?'PC':!defeated&&!dark&&!powerOut&&view==='right'&&selected>=0?'書類':null;const key=mode==='書類'?paperJobIds[selected]:null;const api=jobApi();$('jobPane').hidden=!mode;$('jobPane').dataset.mode=mode||'';$('pcBack').hidden=mode!=='PC';$('close').hidden=mode!=='書類';$('pcSave').hidden=mode!=='PC';$('pcStatus').hidden=mode!=='PC';$('jobtitle').textContent=mode==='PC'?'社内業務管理システム':mode==='書類'?jobs[selected][1]:'';if(mode!==jobMode||key!==jobKey){if(api){if(mode)api.show(mode,key||(mode==='PC'?pcTab:null));else api.suspend();}jobMode=mode;jobKey=key;}if(api)api.setSound($('jobSound').checked);}
-window.jobCanCommit=mode=>gameActive()&&jobReady&&!defeated&&!powerOut&&!checkoutTimer&&(mode==='PC'?view==='pc'&&pcZoomed&&monitorOn&&!saveTimer:mode==='書類'&&view==='right'&&selected>=0&&!dark);
+function syncJobPane(){const mode=!defeated&&!powerOut&&view==='pc'&&pcZoomed&&monitorOn?'PC':!defeated&&view==='right'&&selected>=0?'書類':null;const key=mode==='書類'?paperJobIds[selected]:null;const api=jobApi();$('jobPane').hidden=!mode;$('jobPane').dataset.mode=mode||'';$('jobPane').classList.toggle('paper-dark',mode==='書類'&&dark);$('jobPane').style.setProperty('--paper-brightness',config.darkPaperBrightness);$('pcBack').hidden=mode!=='PC';$('close').hidden=mode!=='書類';$('pcSave').hidden=mode!=='PC';$('pcStatus').hidden=mode!=='PC';$('jobtitle').textContent=mode==='PC'?'社内業務管理システム':mode==='書類'?jobs[selected][1]:'';if(mode!==jobMode||key!==jobKey){if(api){if(mode)api.show(mode,key||(mode==='PC'?pcTab:null));else api.suspend();}jobMode=mode;jobKey=key;}if(api)api.setSound($('jobSound').checked);}
+window.jobCanCommit=mode=>gameActive()&&jobReady&&!defeated&&!checkoutTimer&&(mode==='PC'?!powerOut&&view==='pc'&&pcZoomed&&monitorOn&&!saveTimer:mode==='書類'&&view==='right'&&selected>=0);
 window.jobTabChanged=id=>{if(pcJobIds.includes(id))pcTab=id;};
 window.jobCommitted=(id,done,correct)=>{const i=pcJobIds.indexOf(id),j=paperJobIds.indexOf(id);if(i>=0&&window.jobCanCommit('PC')){pcTab=id;pcRemain[i]=config.pcCounts[i]-done;pcCorrect[i]=correct;drawPC();syncPC();}else if(j===selected&&j>=0&&window.jobCanCommit('書類')){remain[j]=config.counts[j]-done;paperCorrect[j]=correct;render();}stats();};
 $('jobFrame').addEventListener('load',()=>{jobReady=!!$('jobFrame').contentWindow.jobAPI;if(!jobReady)return;resetJobs();syncJobPane();});
@@ -200,7 +246,7 @@ window.addEventListener('DOMContentLoaded',()=>{$('jobFrame').src='jobs/index.ht
 
 
 function openJob(i) {
-    if (!gameActive() || eating || dark || powerOut || defeated) {notify('暗くて書類が読めない');return;}
+    if (!gameActive() || eating || defeated) {return;}
     if (!remain[i]) {notify('この業務は完了済み');return;}
     if (!jobReady) {notify('業務システムを読み込み中');return;}
     selected=i; syncJobPane();
@@ -217,6 +263,7 @@ function cameraUnavailableNotice() {
 }
 function change(v) {
     if (defeated || !gameActive() || eating || checkoutTimer) return;
+    closeFood();
     closeJob();
     closePC();
     if (v === view)
@@ -239,7 +286,6 @@ function setLight(on) {
     if (!gameActive() || eating || checkoutTimer || defeated || phase === 'peek' || powerOut)
         return;
     dark = !on;
-    closeJob();
     if (!encounter && eventType === 'light' && phase === 'stop' && safeFrom('light')) {
         cancelEvent();
         eventType = 'light';
@@ -260,6 +306,8 @@ $('reset').onclick = () => {
     catch (e) {
     }
     ;
+    cancelEating();
+    resetSleepEffects();
     clearEncounter();
     cancelEvent();
     used.clear();
@@ -273,27 +321,36 @@ $('reset').onclick = () => {
     closeJob();
     render();
 };
-$('stage').addEventListener('pointerdown', e => {
-    if (e.target.closest('#pcZoom,#remoteUI'))
-        return;
-    gesture = [e.clientX, e.clientY];
-});
-$('stage').addEventListener('pointerup', e => {
-    if (!gesture)
-        return;
-    let dx = e.clientX - gesture[0], dy = e.clientY - gesture[1];
-    gesture = null;
-    if (Math.abs(dx) > 65 && Math.abs(dx) > Math.abs(dy) * 1.4)
-        change(dx < 0 ? (view === 'left' ? 'pc' : 'right') : (view === 'right' ? 'pc' : 'left'));
-    else if (Math.abs(dy) > 45 && Math.abs(dy) > Math.abs(dx) * 1.2) {
-        if (dy < 0)
-            change(view === 'look' ? 'hide' : view === 'hide' ? 'hide' : 'look');
-        else if (isUnder())
-            change(view === 'hide' ? 'look' : lastDesk);
-        else
-            change('camera');
+function flickView(dx,dy) {
+    if (!gameActive() || defeated || eating || checkoutTimer) return false;
+    if (Math.abs(dx)>65 && Math.abs(dx)>Math.abs(dy)*1.4) {
+        change(dx<0?(view==='left'?'pc':'right'):(view==='right'?'pc':'left')); return true;
     }
+    if (Math.abs(dy)>45 && Math.abs(dy)>Math.abs(dx)*1.2) {
+        change(dy<0?(isUnder()?'hide':'look'):(isUnder()?(view==='hide'?'look':lastDesk):'camera')); return true;
+    }
+    return false;
+}
+window.jobFlick=(dx,dy)=>view==='pc'&&pcZoomed&&flickView(dx,dy);
+let suppressStageClick=false;
+$('stage').addEventListener('click',e=>{if(suppressStageClick){suppressStageClick=false;e.preventDefault();e.stopImmediatePropagation();}},true);
+$('stage').addEventListener('pointerdown', e=>{
+    if(e.target.closest('#pcZoom,#remoteUI'))return;
+    suppressStageClick=false;
+    gesture=[e.clientX,e.clientY];
 });
+$('stage').addEventListener('pointerup',e=>{
+    if(!gesture)return;
+    const [x,y]=gesture;gesture=null;if(flickView(e.clientX-x,e.clientY-y))suppressStageClick=true;
+});
+$('stage').addEventListener('pointercancel',()=>{gesture=null;});
+// PC業務ツールバーでも同じフリック判定を使う。
+let toolbarFlick=null, toolbarSuppress=false;
+const toolbar=$('jobPane').querySelector('.job-toolbar');
+toolbar.addEventListener('pointerdown',e=>{toolbarSuppress=false;toolbarFlick=jobMode==='PC'&&e.isPrimary&&e.button===0?{id:e.pointerId,x:e.clientX,y:e.clientY}:null;},true);
+toolbar.addEventListener('pointerup',e=>{const s=toolbarFlick;toolbarFlick=null;if(s&&s.id===e.pointerId&&window.jobFlick(e.clientX-s.x,e.clientY-s.y)){toolbarSuppress=true;e.preventDefault();}},true);
+toolbar.addEventListener('pointercancel',()=>{toolbarFlick=null;},true);
+toolbar.addEventListener('click',e=>{if(toolbarSuppress){toolbarSuppress=false;e.preventDefault();e.stopImmediatePropagation();}},true);
 
 
 function isUnder() {
@@ -480,7 +537,7 @@ $('remoteOff').onclick = () => {
 
 
 // Shared encounter state: independent of the currently visible screen.
-const risePreload = Object.keys(A).filter(k => k.startsWith('light_rise_') || k.startsWith('patrol_attack_')).map(k => {
+const risePreload = Object.keys(A).filter(k => k.startsWith('light_rise_') || k.startsWith('light_peek_') || k.startsWith('patrol_attack_')).map(k => {
     const img = new Image();
     img.src = A[k];
     return img;
@@ -598,49 +655,13 @@ function loseEncounter(t) {
     closeJob();
     clearTimeout(blinkTimer);
     $('blink').classList.remove('closed');
-    const finish = () => {
-        showResult(t);
-    };
-    if (t === 'patrol') {
-        const suffix = dark ? 'dark' : 'normal';
-        // Instantly force the slightly raised monitor view, even if the player is at CCTV, eating or doing paperwork.
-        $('blink').classList.add('closed');
-        encounterTimer = setTimeout(() => {
-            view = 'pc';
-            phase = 'none';
-            riseFrame = 'patrol_attack_pre_' + suffix;
-            render();
-            $('blink').classList.remove('closed');
-            encounterTimer = setTimeout(() => {
-                $('blink').classList.add('closed');
-                encounterTimer = setTimeout(() => {
-                    riseFrame = 'patrol_attack_hit_' + suffix;
-                    render();
-                    $('blink').classList.remove('closed');
-                    encounterTimer = setTimeout(finish, config.patrolHitMs);
-                }, config.blinkMs);
-            }, config.patrolPreMs);
-        }, config.blinkMs);
-    }
-    else if (view === 'hide') {
-        phase = 'peek';
-        render();
-        encounterTimer = setTimeout(finish, config.peekMs);
-    }
-    else if (t === 'light') {
-        const suffix = dark ? 'dark' : 'normal';
-        view = 'look';
-        phase = 'peek';
-        riseFrame = 'light_rise_pre_' + suffix;
-        render();
-        encounterTimer = setTimeout(() => {
-            riseFrame = 'light_rise_hit_' + suffix;
-            render();
-            encounterTimer = setTimeout(finish, config.riseHitMs);
-        }, config.risePreMs);
-    }
-    else
-        finish();
+    const suffix = dark ? 'dark' : 'normal';
+    // 専用の全画面レイヤーで、どの視点から死亡しても同じタイミングを保証。
+    // 机下の光型には既存の覗き込み画像を構えとして使う。
+    const pre = t === 'patrol' ? 'patrol_attack_pre_' + suffix
+        : view === 'hide' ? 'light_peek_' + suffix : 'light_rise_pre_' + suffix;
+    const hit = (t === 'patrol' ? 'patrol_attack_hit_' : 'light_rise_hit_') + suffix;
+    playDeathScare(t, A[pre], A[hit]);
 }
 setInterval(() => {
     if (!encounter || defeated)
@@ -670,7 +691,7 @@ window.cameraPower = function (out) {
         dark = true;
         monitorOn = false;
         closePC();
-        closeJob();
+        if(view !== 'right') closeJob();
         drawPC();
         notify('停電：未保存のPC作業を消失');
     }
@@ -753,13 +774,19 @@ const totalJobs=()=>[...config.counts,...config.pcCounts].reduce((a,b)=>a+b,0);
 function clockText(){const m=Math.min(360,Math.floor(elapsed/config.nightMs*360));return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');}
 function cancelCheckout(){clearTimeout(checkoutTimer);checkoutTimer=null;jobApi()?.setSaving(false);updateCheckout();}
 function updateCheckout(){const b=$('checkout');b.hidden=remaining()!==0||!gameActive();b.disabled=!!checkoutTimer||!!saveTimer||dirtyPC()||!monitorOn||powerOut;b.textContent=checkoutTimer?'送信中…':dirtyPC()?'保存後に退勤申請':'退勤申請';}
-function freezeNight(){nightState='ending';cancelEating();cancelCheckout();clearTimeout(saveTimer);saveTimer=null;clearTimeout(blinkTimer);clearTimeout(eventTimer);try{$('cameraFrame').contentWindow.pausePatrol();}catch(_){};closePC();closeJob();$('app').inert=true;}
-function endNight(reason){if(!gameActive())return;defeated=true;clearTimeout(encounterTimer);freezeNight();showResult(reason);}
-function showResult(reason){nightState='result';$('resultScreen').hidden=false;$('titleScreen').hidden=true;const success=reason==='clear';const done=totalJobs()-remaining(),correct=[...pcCorrect,...paperCorrect].reduce((a,b)=>a+b,0),accuracy=done?100*correct/done:0;const speed=Math.round(config.speedPay*(1-elapsed/config.nightMs)),quality=Math.round(config.qualityPay*accuracy/100),mistakes=Math.round((100-accuracy)*config.errorCostPerPercent),drink=coffeeUsed*config.coffeeCost,meal=foodUsed*config.foodCost,pay=Math.max(0,config.basePay+speed+quality-mistakes-drink-meal);const yen=n=>'¥'+n.toLocaleString('ja-JP');const row=(a,b)=>`<div class="record"><span>${a}</span><b>${b}</b></div>`;const details=row('勤務終了',clockText())+row('業務処理',`${done} / ${totalJobs()}件`)+row('正確率',accuracy.toFixed(1)+'%')+row('停電 / 消失業務',`${outages}回 / ${lostWork}件`)+row('怪異遭遇 / 回避',`${encountersSeen} / ${encountersAvoided}回`);$('resultBody').innerHTML=success?`<article class="payslip"><small>人事労務管理部　社員番号 000184</small><h2>時間外勤務給与明細</h2><div class="stampMark">退勤許可</div><h3>支給</h3>${row('業務完了報酬',yen(config.basePay))}${row('早期退勤手当',yen(speed))}${row('業務精度手当',yen(quality))}<h3>控除</h3>${row('誤処理控除','−'+yen(mistakes))}${row('社内飲料費 '+coffeeUsed+'点','−'+yen(drink))}${row('社内食事費 '+foodUsed+'点','−'+yen(meal))}<h3>差引支給額</h3><div class="payTotal">${yen(pay)} <small>評価 ${pay>=14000?'S':pay>=12000?'A':pay>=10000?'B':pay>=8000?'C':'D'}</small></div>${details}<p>本日もお疲れ様でした。明日も通常どおり出勤してください。</p></article>`:`<article class="deathReport"><div class="employeeCard"><header>社員証　 EMPLOYEE ID</header><div class="idContent"><div class="photo"><svg viewBox="0 0 100 120" aria-label="顔写真は塗りつぶされています"><rect width="100" height="120" fill="#737d76"/>${reason==='timeout'?'<rect x="8" y="8" width="84" height="104" fill="#555e59"/><text x="50" y="60" text-anchor="middle" fill="#ddd" font-size="10">非表示</text>':'<g stroke="#211e1c" stroke-linecap="round" fill="none"><path d="M5 5L30 41L64 79L95 115M96 5L71 38L33 80L4 115" stroke-width="17"/><path d="M4 17L93 104M13 2L98 91M91 16L2 103M99 26L12 116M20 33L82 81L16 79L85 29L31 96L78 101L8 52L91 65" stroke-width="10"/></g>'}</svg></div><div>社員番号<br><strong>000184</strong><hr>所属　業務管理部<hr>勤務資格　${reason==='timeout'?'保留':'無効'}<div class="stampMark">${reason==='timeout'?'退勤拒否':'登録抹消'}</div></div></div></div><h2>${reason==='timeout'?'規定業務未達成':'勤務継続不能'}</h2>${row('処理区分',({patrol:'所在確認不能',light:'勤務継続不能',sleep:'勤務中の意識消失',timeout:'退勤拒否'})[reason]||reason)}${details}<p>${reason==='timeout'?'退勤は認められません。':'欠員が発生しました。後任社員の手配を開始します。'}</p></article>`;}
-function startNight(){if(!jobReady||!$('cameraFrame').contentWindow.startNight){$('startStatus').textContent='業務システムを読み込み中です。';return;}$('app').inert=false;$('resultScreen').hidden=true;$('reset').click();elapsed=0;outages=lostWork=encountersSeen=encountersAvoided=coffeeUsed=foodUsed=0;cancelEating();nightState='playing';lastTick=performance.now();$('titleScreen').hidden=true;$('cameraFrame').contentWindow.startNight();render();}
-$('startNight').onclick=startNight;$('rejoin').onclick=startNight;$('returnTitle').onclick=()=>{$('resultScreen').hidden=true;$('titleScreen').hidden=false;nightState='title';};
+function freezeNight(){nightState='ending';resetSleepEffects();cancelEating();cancelCheckout();clearTimeout(saveTimer);saveTimer=null;clearTimeout(blinkTimer);clearTimeout(eventTimer);try{$('cameraFrame').contentWindow.pausePatrol();}catch(_){};closePC();closeJob();$('app').inert=true;}
+let deathTimers=[];
+function deathAfter(ms,fn){deathTimers.push(setTimeout(fn,ms));}
+function resetDeathPresentation(){deathTimers.forEach(clearTimeout);deathTimers=[];const o=$('deathOverlay');o.hidden=true;o.className='';$('deathImage').removeAttribute('src');$('resultScreen').classList.remove('deathReveal');$('rejoin').disabled=$('returnTitle').disabled=false;}
+function deathBlack(reason){const o=$('deathOverlay');o.className='black';deathAfter(config.deathBlackMs,()=>showResult(reason));}
+function playDeathScare(reason,pre,hit){const o=$('deathOverlay'),img=$('deathImage');o.className='pre';img.src=pre;o.hidden=false;const delay=config.scarePreMinMs+Math.random()*(config.scarePreMaxMs-config.scarePreMinMs);deathAfter(delay,()=>{img.src=hit;o.className='hit';deathAfter(config.scareHitMs,()=>deathBlack(reason));});}
+function endNight(reason){if(!gameActive())return;defeated=true;clearTimeout(encounterTimer);freezeNight();if(reason==='sleep'){const o=$('deathOverlay');o.style.setProperty('--sleep-close',config.sleepCloseMs+'ms');o.className='sleepClose';o.hidden=false;deathAfter(config.sleepCloseMs,()=>deathBlack(reason));}else showResult(reason);}
+function revealResult(reason){const screen=$('resultScreen');$('deathOverlay').hidden=true;const death=reason!=='clear';screen.classList.toggle('deathReveal',death);if(!death)return;screen.style.setProperty('--death-fade',config.deathFadeMs+'ms');screen.style.setProperty('--death-heading',config.deathHeadingMs+'ms');screen.style.setProperty('--death-details',config.deathDetailsMs+'ms');$('rejoin').disabled=$('returnTitle').disabled=true;deathAfter(config.deathFadeMs+config.deathHeadingMs+config.deathDetailsMs,()=>{$('rejoin').disabled=$('returnTitle').disabled=false;});}
+function showResult(reason){nightState='result';$('resultScreen').hidden=false;$('titleScreen').hidden=true;const success=reason==='clear';const done=totalJobs()-remaining(),correct=[...pcCorrect,...paperCorrect].reduce((a,b)=>a+b,0),accuracy=done?100*correct/done:0;const speed=Math.round(config.speedPay*(1-elapsed/config.nightMs)),quality=Math.round(config.qualityPay*accuracy/100),mistakes=Math.round((100-accuracy)*config.errorCostPerPercent),drink=coffeeUsed*config.coffeeCost,meal=foodUsed*config.foodCost,pay=Math.max(0,config.basePay+speed+quality-mistakes-drink-meal);const yen=n=>'¥'+n.toLocaleString('ja-JP');const row=(a,b)=>`<div class="record"><span>${a}</span><b>${b}</b></div>`;const details=row('勤務終了',clockText())+row('業務処理',`${done} / ${totalJobs()}件`)+row('正確率',accuracy.toFixed(1)+'%')+row('停電 / 消失業務',`${outages}回 / ${lostWork}件`)+row('怪異遭遇 / 回避',`${encountersSeen} / ${encountersAvoided}回`);$('resultBody').innerHTML=success?`<article class="payslip"><small>人事労務管理部　社員番号 000184</small><h2>時間外勤務給与明細</h2><div class="stampMark">退勤許可</div><h3>支給</h3>${row('業務完了報酬',yen(config.basePay))}${row('早期退勤手当',yen(speed))}${row('業務精度手当',yen(quality))}<h3>控除</h3>${row('誤処理控除','−'+yen(mistakes))}${row('社内飲料費 '+coffeeUsed+'点','−'+yen(drink))}${row('社内食事費 '+foodUsed+'点','−'+yen(meal))}<h3>差引支給額</h3><div class="payTotal">${yen(pay)} <small>評価 ${pay>=14000?'S':pay>=12000?'A':pay>=10000?'B':pay>=8000?'C':'D'}</small></div>${details}<p>本日もお疲れ様でした。明日も通常どおり出勤してください。</p></article>`:`<article class="deathReport"><div class="employeeCard"><header>社員証　 EMPLOYEE ID</header><div class="idContent"><div class="photo"><svg viewBox="0 0 100 120" aria-label="顔写真は塗りつぶされています"><rect width="100" height="120" fill="#737d76"/>${reason==='timeout'?'<rect x="8" y="8" width="84" height="104" fill="#555e59"/><text x="50" y="60" text-anchor="middle" fill="#ddd" font-size="10">非表示</text>':'<g stroke="#211e1c" stroke-linecap="round" fill="none"><path d="M5 5L30 41L64 79L95 115M96 5L71 38L33 80L4 115" stroke-width="17"/><path d="M4 17L93 104M13 2L98 91M91 16L2 103M99 26L12 116M20 33L82 81L16 79L85 29L31 96L78 101L8 52L91 65" stroke-width="10"/></g>'}</svg></div><div>社員番号<br><strong>000184</strong><hr>所属　業務管理部<hr>勤務資格　${reason==='timeout'?'保留':'無効'}<div class="stampMark">${reason==='timeout'?'退勤拒否':'登録抹消'}</div></div></div></div><h2>${reason==='timeout'?'規定業務未達成':'勤務継続不能'}</h2>${row('処理区分',({patrol:'所在確認不能',light:'勤務継続不能',sleep:'勤務中の意識消失',timeout:'退勤拒否'})[reason]||reason)}${details}<p>${reason==='timeout'?'退勤は認められません。':'欠員が発生しました。後任社員の手配を開始します。'}</p></article>`;revealResult(reason);}
+function startNight(){if(!jobReady||!$('cameraFrame').contentWindow.startNight){$('startStatus').textContent='業務システムを読み込み中です。';return;}resetDeathPresentation();$('app').inert=false;$('resultScreen').hidden=true;$('reset').click();elapsed=0;outages=lostWork=encountersSeen=encountersAvoided=coffeeUsed=foodUsed=0;cancelEating();nightState='playing';lastTick=performance.now();$('titleScreen').hidden=true;$('cameraFrame').contentWindow.startNight();render();}
+$('startNight').onclick=startNight;$('rejoin').onclick=startNight;$('returnTitle').onclick=()=>{resetDeathPresentation();$('resultScreen').hidden=true;$('titleScreen').hidden=false;nightState='title';};
 $('checkout').onclick=()=>{if(!gameActive()||remaining()||dirtyPC()||saveTimer||powerOut||!monitorOn||checkoutTimer)return;jobApi()?.setSaving(true);checkoutTimer=setTimeout(()=>{checkoutTimer=null;if(gameActive()&&!remaining()&&!dirtyPC()&&!powerOut)endNight('clear');},config.checkoutMs);updateCheckout();};
-setInterval(()=>{if(!gameActive())return;const now=performance.now(),dt=Math.max(0,now-lastTick);lastTick=now;elapsed=Math.min(config.nightMs,elapsed+dt);sleep=Math.min(100,sleep+dt/1000*config.sleepPerSecond*(Date.now()<foodUntil?config.foodEffect:1));if(sleep>=100){endNight('sleep');return;}if(elapsed>=config.nightMs){endNight('timeout');return;}updateEating(now);stats();},100);
+setInterval(()=>{if(!gameActive())return;const now=performance.now(),dt=Math.max(0,now-lastTick);lastTick=now;elapsed=Math.min(config.nightMs,elapsed+dt);sleep=Math.min(100,sleep+dt/1000*config.sleepPerSecond*(Date.now()<foodUntil?config.foodEffect:1));if(sleep>=100){endNight('sleep');return;}if(elapsed>=config.nightMs){endNight('timeout');return;}updateEating(now);updateSleepEffects(now);stats();},100);
 $('cameraBlack').addEventListener('pointerdown',e=>gesture=[e.clientX,e.clientY]);$('cameraBlack').addEventListener('pointerup',e=>{if(gesture&&gesture[1]-e.clientY>35)change('pc');gesture=null;});
 
 
