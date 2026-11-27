@@ -30,6 +30,7 @@ function playJobSound(kind){if(!$('sound').checked)return;try{jobAudio??=new (wi
 // Pointer capture, preserved grab offset, filtered targets and cancellable animation.
 let cancelDrag=()=>{};
 function wireDrag(el,accept,allowed=null){
+ el.dataset.draggable='true';
  el.addEventListener('pointerdown',e=>{
  if(e.button!==0||!e.isPrimary||locked)return;e.preventDefault();cancelDrag();
  const r=el.getBoundingClientRect(),ghost=el.cloneNode(true),id=e.pointerId;
@@ -97,7 +98,7 @@ window.addEventListener('blur',()=>cancelDrag());
 
 // PCタップとフリックを区別。書類ドラッグには一切介入しない。
 let flickStart=null, suppressFlickClick=false;
-document.addEventListener('pointerdown',e=>{suppressFlickClick=false;flickStart=mode==='PC'&&e.isPrimary&&e.button===0?{id:e.pointerId,x:e.clientX,y:e.clientY}:null;},true);
-document.addEventListener('pointerup',e=>{const s=flickStart;flickStart=null;if(!s||s.id!==e.pointerId||mode!=='PC')return;if(parent.jobFlick(e.clientX-s.x,e.clientY-s.y)){suppressFlickClick=true;e.preventDefault();}},true);
+document.addEventListener('pointerdown',e=>{suppressFlickClick=false;flickStart=(mode==='PC'||(mode==='書類'&&!e.target.closest('[data-draggable],button,input,select,textarea')))&&e.isPrimary&&e.button===0?{id:e.pointerId,x:e.clientX,y:e.clientY}:null;},true);
+document.addEventListener('pointerup',e=>{const s=flickStart;flickStart=null;if(!s||s.id!==e.pointerId||!mode)return;if(parent.jobFlick(e.clientX-s.x,e.clientY-s.y)){suppressFlickClick=true;e.preventDefault();}},true);
 document.addEventListener('pointercancel',()=>{flickStart=null;},true);
 document.addEventListener('click',e=>{if(suppressFlickClick){suppressFlickClick=false;e.preventDefault();e.stopImmediatePropagation();}},true);

@@ -282,7 +282,6 @@ footer button {
   }
 }
 
-
 .blink {
   position: absolute;
   inset: 0;
@@ -335,7 +334,6 @@ footer button {
 .stage.scare #hud,.stage.scare #toast,.stage.scare #underAction {
   visibility: hidden;
 }
-
 
 #pcLayer {
   position: absolute;
@@ -517,7 +515,6 @@ footer button {
   display: none;
 }
 
-
 #cameraPane {
   position: absolute;
   inset: 0;
@@ -557,12 +554,12 @@ footer button {
   display: grid;
 }
 
-
 #jobPane{position:absolute;inset:0;z-index:11;display:flex;flex-direction:column;background:#18282d;border:1px solid #536b72;min-height:0}#jobPane[hidden],#jobPane [hidden]{display:none!important}.job-toolbar{display:flex;align-items:center;gap:6px;padding:4px 8px;background:#344d5b;color:#fff;min-height:32px;flex-shrink:0;font-size:12px}.job-toolbar b{white-space:nowrap}.job-toolbar label{white-space:nowrap;display:flex;align-items:center;font-size:11px}.job-toolbar button{padding:4px 9px;white-space:nowrap}#jobAlert{flex:1;color:#ffe2a9;font-size:11px;min-width:0}#pcStatus{font-size:11px;white-space:nowrap}#jobFrame{border:0;width:100%;flex:1;min-height:0}#jobPane[data-mode="書類"] .job-toolbar{background:#303a35}@media(max-width:650px){.job-toolbar{flex-wrap:wrap;gap:3px;padding:3px 5px}.job-toolbar b{font-size:11px}#jobAlert{font-size:10px}.job-toolbar button{font-size:11px}}
 #jobPane.paper-dark{background:#101510}#jobPane.paper-dark #jobFrame{filter:brightness(var(--paper-brightness,.24));}#jobPane.paper-dark .job-toolbar{background:#202823;}
 
 #jobPane[data-mode="PC"] .job-toolbar,#jobPane[data-mode="PC"] .job-toolbar *{touch-action:none;user-select:none;-webkit-user-select:none;}
 
+#jobPane[data-mode="書類"] .job-toolbar,#jobPane[data-mode="書類"] .job-toolbar *{touch-action:none;}
 
 [hidden]{display:none!important}#cameraBlack{position:absolute;inset:0;background:#020303;z-index:5;touch-action:none}#cameraBack{z-index:6}#eatPanel{position:absolute;inset:0;z-index:25;background:#08101155;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;pointer-events:auto}#eatText{background:#101a1eee;padding:12px 24px}#eatProgress{width:min(60%,320px);accent-color:#8ca69b}#app:has(#eatPanel:not([hidden])) header button,#app:has(#eatPanel:not([hidden])) footer button{pointer-events:none;opacity:.45}#reset,#labels,#underTools{display:none!important}.nightOverlay{position:fixed;inset:0;z-index:100;overflow:auto;background:#0b1318;display:grid;place-items:center;padding:18px}.nightOverlay#titleScreen{background:linear-gradient(#07101699,#071016f5),url('../assets/desk/pc_normal.jpg') center/cover}.titleContent{width:min(90%,420px);text-align:center;display:grid;gap:12px;background:#101c20bb;padding:18px 30px;border:1px solid #526564}.titleContent h1{font-size:clamp(40px,11vh,90px);letter-spacing:.25em;margin:0;color:#e4e9e2}.english{letter-spacing:.6em;color:#a8b9b5}.titleContent p{margin:0;color:#b1c1bc}.titleContent small{letter-spacing:.12em;color:#92a29e}.titleContent details{font-size:12px;text-align:left}.titleContent button{padding:14px}.resultWrap{width:min(95%,700px);margin:auto}.resultActions{display:flex;gap:10px;margin-top:12px}.resultActions button{flex:1}.payslip{background:#e9e9df;color:#263d39;padding:18px;position:relative;box-shadow:0 8px 24px #0007}.payslip h2,.deathReport h2{margin:6px 0 12px}.payslip h3{background:#cbd7cb;padding:4px 8px;margin:9px 0 3px;font-size:13px}.record{display:flex;justify-content:space-between;gap:10px;padding:3px 0;border-bottom:1px solid #82928a44;font-size:12px}.payTotal{font-size:28px;font-weight:700}.payTotal small{font-size:14px}.payslip p,.deathReport p{font-size:12px;text-align:center}.stampMark{color:#922f2c;border:3px double #922f2c;display:inline-block;padding:4px 9px;font-weight:800;transform:rotate(-9deg);letter-spacing:.12em}.payslip>.stampMark{position:absolute;right:16px;top:20px}.employeeCard{background:#d1d6cb;color:#354b48;border-radius:7px;max-width:440px;margin:auto;transform:rotate(-3deg);box-shadow:0 7px 18px #0008;overflow:hidden}.employeeCard header{background:#344f55;color:#eee;font-weight:bold}.idContent{padding:12px;display:grid;grid-template-columns:35% 1fr;gap:15px}.photo svg{width:100%;display:block}.deathReport{padding:14px;background:#141f22}.deathReport h2{text-align:center;margin-top:20px;color:#d0a19b}.deathReport hr{border:0;border-top:1px solid #8b9b90}.idContent strong{font-size:22px}@media(max-height:440px){.nightOverlay{padding:8px}.titleContent{gap:6px;padding:9px 20px}.titleContent h1{font-size:42px}.titleContent button{padding:8px}.payslip{padding:10px}.payslip>.stampMark{top:10px}.deathReport{padding:10px}}
 
@@ -592,9 +589,16 @@ footer button {
 .foodInfo{display:grid;gap:clamp(3px,1cqw,8px);min-width:0}.foodInfo h2,.foodInfo p{margin:0}.foodInfo h2{font-size:clamp(15px,3cqw,25px)}.foodInfo p,.foodInfo small{font-size:clamp(10px,1.8cqw,14px);color:#b5c2bc}.foodInfo button{padding:clamp(4px,1cqw,9px);font-size:clamp(11px,1.8cqw,15px)}
 #foodDetail.food-dark #foodImage,#eatPanel.food-dark #eatImage{filter:brightness(.24) saturate(.4)}
 #eatImage{height:min(40%,160px);max-width:45%;object-fit:contain;filter:brightness(.8);pointer-events:none}
-#fatigueOverlay{position:absolute;inset:0;z-index:40;pointer-events:none;overflow:hidden;background:radial-gradient(ellipse at center,transparent 35%,rgba(0,0,0,var(--fatigue-shade,0)) 100%);transition:background .3s}
-.fatigueLid{position:absolute;left:0;right:0;height:51%;background:#000;transform:scaleY(var(--fatigue-lid,0));transition:transform .25s}.fatigueLid.top{top:0;transform-origin:top}.fatigueLid.bottom{bottom:0;transform-origin:bottom}
+#fatigueOverlay{position:absolute;inset:0;z-index:40;pointer-events:none;overflow:hidden;}
+#fatigueOverlay::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse farthest-corner at center,transparent 28%,rgba(0,0,0,.33) 65%,#000 100%);opacity:var(--fatigue-shade,0);transition:opacity .3s}
+.fatigueLid{position:absolute;left:0;right:0;height:51%;background:#000;transform:scaleY(0)}.fatigueLid.top{top:0;transform-origin:top}.fatigueLid.bottom{bottom:0;transform-origin:bottom}
 #fatigueOverlay.blinking .fatigueLid{animation:fatigueBlink var(--fatigue-duration,500ms) ease-in-out both}
-@keyframes fatigueBlink{0%,100%{transform:scaleY(var(--fatigue-lid,0))}42%,58%{transform:scaleY(1)}}
+@keyframes fatigueBlink{0%,100%{transform:scaleY(0)}42%,58%{transform:scaleY(1)}}
 .sleepSetting{font-size:12px;color:#b5c2bc}
 .stage:has(#foodDetail:not([hidden])){touch-action:none}
+
+@keyframes breaker-dim{0%,100%{filter:none}20%,70%{filter:brightness(.24)}45%{filter:brightness(.8)}}
+#stage.breaker-flicker{animation:breaker-dim .8s linear both;}
+@media(prefers-reduced-motion:reduce){#stage.breaker-flicker{animation:none;filter:brightness(.45);}}
+
+#popupLayer{position:absolute;inset:0;top:var(--popup-top,38px);overflow:hidden;pointer-events:none;z-index:2}#jobPane:not([data-mode="PC"]) #popupLayer{display:none} .retroPopup{position:absolute;right:3%;bottom:6%;width:min(310px,45%);background:var(--popup-bg,#c0c0c0);color:var(--popup-fg,#111);border:2px outset #eee;box-shadow:3px 4px #0006;font:13px Arial,'MS Gothic',sans-serif;pointer-events:auto;touch-action:none;user-select:none} .retroPopup header{display:flex;justify-content:space-between;align-items:center;background:#000080;color:#fff;padding:2px 4px;min-height:24px;font-size:12px;position:static;width:auto;gap:4px}.retroPopup p{white-space:pre-line;text-align:center;margin:0;padding:12px 8px;line-height:1.45}.retroButtons{display:flex;justify-content:center;gap:8px;padding:0 5px 9px}.retroPopup button{font:inherit;color:#111;background:#c0c0c0;border:2px outset #eee;border-radius:0;min-height:29px;padding:2px 14px}.retroPopup header button{padding:0 5px;min-width:26px;min-height:25px}.retroPopup.invert{--popup-bg:#080808;--popup-fg:#fff}.retroPopup.invert header{background:#ddd;color:#111}.retroPopup.flood{right:auto;bottom:auto;width:30%;min-width:100px;pointer-events:auto}.retroPopup.flood p{padding:6px 3px}.retroPopup.flood .retroButtons{padding-bottom:4px}.popupCrash{position:absolute;inset:0;background:#060606;color:#aaa;display:grid;place-content:center;white-space:pre-line;text-align:center;pointer-events:auto;font:13px monospace;touch-action:none}#popupLayer:has(.flood){pointer-events:auto} @media(max-height:420px){.retroPopup p{padding:6px}.retroPopup button{min-height:24px}.retroPopup header button{min-height:22px}}

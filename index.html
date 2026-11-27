@@ -1,17 +1,19 @@
 <!doctype html><html lang="ja">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>残業 / OVERTIME</title>
+
+
+
+
+
+
+
 <link rel="stylesheet" href="css/bundle.css">
-
-
-
-
-
 </head>
 <body>
 <div id="app" inert>
 <header>
-<b>OVERTIME / DESK + CCTV v0.17</b>
+<b>OVERTIME / DESK + CCTV v0.20</b>
 <button id="camera">上・監視</button>
 <button id="pc">中央・PC</button>
 <button id="left">左・飲食</button>
@@ -62,7 +64,7 @@
 </div>
 <section id="jobPane" hidden aria-label="業務画面">
 <div class="job-toolbar"><b id="jobtitle"></b><span id="jobAlert" aria-live="polite"></span><span id="pcStatus"></span><label><input type="checkbox" id="jobSound" checked>作業音</label><button id="pcSave">保存</button><button id="checkout" hidden>退勤申請</button><button id="pcBack">× 戻る</button><button id="close" hidden>× 戻る</button></div>
-<iframe id="jobFrame" title="業務ミニゲーム"></iframe>
+<iframe id="jobFrame" title="業務ミニゲーム"></iframe><div id="popupLayer" aria-label="PC通知"></div>
 </section>
 <div id="cameraPane" hidden>
 <iframe id="cameraFrame" title="監視カメラ">
@@ -89,7 +91,7 @@
 <span>フリックで視点移動</span>
 </footer>
 </div>
-<section id="titleScreen" class="nightOverlay"><div class="titleContent"><small>INTERNAL ATTENDANCE SYSTEM</small><h1>残業</h1><div class="english">OVERTIME</div><p>本日の業務が残っています。<br>午前6時までに退勤申請を完了してください。</p><button id="startNight">残業を開始する</button><details><summary>業務マニュアル</summary><p>PC業務は保存が必要です。監視カメラで怪異を確認し、巡回社員からは机の下へ。光反応型には照明・モニターを消してください。電気室を監視して停電を防止できます。飲食は給与から控除され、完了まで操作できません。</p></details><label class="sleepSetting"><input id="sleepGaugeSetting" type="checkbox" checked> 眠気ゲージを表示（検証用）</label><small id="startStatus">社内利用専用 / Ver.0.17</small></div></section><div id="deathOverlay" hidden aria-hidden="true"><img id="deathImage" alt=""><div class="eyelid top"></div><div class="eyelid bottom"></div></div><section id="resultScreen" class="nightOverlay" hidden><div class="resultWrap"><div id="resultBody"></div><div class="resultActions"><button id="rejoin">再出勤</button><button id="returnTitle">タイトルへ</button></div></div></section><script src="js/bundle.js"></script>
+<section id="titleScreen" class="nightOverlay"><div class="titleContent"><small>INTERNAL ATTENDANCE SYSTEM</small><h1>残業</h1><div class="english">OVERTIME</div><p>本日の業務が残っています。<br>午前6時までに退勤申請を完了してください。</p><button id="startNight">残業を開始する</button><details><summary>業務マニュアル</summary><p>PC業務は保存が必要です。監視カメラで怪異を確認し、巡回社員からは机の下へ。光反応型には照明・モニターを消してください。新版では電気室を監視すると停電への進行が一時停止します。定期的に確認して退去を待ってください。旧版は累計3秒の監視で退去します。飲食は給与から控除され、完了まで操作できません。</p></details><label class="sleepSetting"><input id="sleepGaugeSetting" type="checkbox" checked> 眠気ゲージを表示（検証用）</label><label class="sleepSetting">配電盤AI（検証用） <select id="breakerMode"><option value="persistent">新版：長時間拘束</option><option value="legacy">旧版：累計3秒監視</option></select></label><small id="startStatus">社内利用専用 / Ver.0.20</small></div></section><div id="deathOverlay" hidden aria-hidden="true"><img id="deathImage" alt=""><div class="eyelid top"></div><div class="eyelid bottom"></div></div><section id="resultScreen" class="nightOverlay" hidden><div class="resultWrap"><div id="resultBody"></div><div class="resultActions"><button id="rejoin">再出勤</button><button id="returnTitle">タイトルへ</button></div></div></section>
 
 
 
@@ -102,5 +104,6 @@
 
 
 
+<script src="js/bundle.js"></script>
 </body>
 </html>
